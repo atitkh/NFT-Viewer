@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>NFT Viewer</title>
+  <script src="https://code.jquery.com/jquery-3.6.0.js">
+  </script>
+  <!-- CSS FOR STYLING THE PAGE -->
+	<style>
+		table {
+			margin: 0 auto;
+			font-size: large;
+			border: 1px solid black;
+		}
+
+		h1 {
+			text-align: center;
+			color: #3b3b0b;
+			font-size: xx-large;
+			font-family: 'Gill Sans',
+				'Gill Sans MT', ' Calibri',
+				'Trebuchet MS', 'sans-serif';
+		}
+
+		td {
+			background-color: #d4eef5;
+			border: 1px solid black;
+		}
+
+		th,
+		td {
+			font-weight: bold;
+			border: 1px solid black;
+			padding: 10px;
+			text-align: center;
+		}
+
+		td {
+			font-weight: lighter;
+		}
+	</style>
+</head>
+
+<body>
+  <h1>NFT Viewer</h1>
+  <!-- input box with button to search for NFT with bootstrap in middle -->
+  <div class="container">
+    <div class="row">
+      <div class="col-md-4"></div>
+      <div class="col-md-4">
+        <input type="text" id="search" class="form-control" placeholder="Search for NFT">
+        <button type="button" id="searchButton" class="btn btn-primary">Search</button>
+      </div>
+      <div class="col-md-4"></div>
+    </div>
+  <!-- table to display the data using bootstrap-->
+  <table id="table">
+
+  </table>
+  <div id="error"></div>
+
+  <script>
+    //get data from rest api and display on site
+    $("#searchButton").click(function () {
+      var search = $("#search").val();
+      data = {
+        'address': search
+      };
+      $.ajax({
+        type: "POST",
+        url: "/NFTPortal",
+        contentType: 'application/json;charset=UTF-8',
+        data: JSON.stringify(data),
+        success: function (response) {
+          console.log(response);
+          $("#table").empty();
+          //display the data in table
+          $("#table").append("<tr><th>ID</th><th>NFT Name</th><th>Blockchain</th><th>Description</th><th>NFT Image</th></tr>");
+          for (var i = 1; i < response.length; i++) {
+            if(response[i].error){
+              $("#error").empty();
+              $("#error").append("<p>" + response[i].error + "</p>");
+            }
+            if(response[i] == ""){
+              response[i].name = "N/A";
+              esponse[i].chain = "N/A";
+              response[i].description = "N/A";
+              response[i].img = "N/A";
+            }
+            $("#table").append("<tr><td>" + i + "</td><td>" 
+              + response[i].name + "</td><td>" 
+                + response[i].chain + "</td><td>" 
+                  + response[i].description + "</td><td><img src='" 
+                  + response[i].img + "'width=auto height='350'></td></tr>");
+          }
+        },
+        error: function (response) {
+          console.log(response);
+          $("#error").empty();
+          $("#error").append("<p>An Error Occured</p>");
+        }
+      });
+    });
+  </script>
+
+</body>
+
+</html>
