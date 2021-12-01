@@ -43,28 +43,31 @@
 
 <body>
   <h1>NFT Viewer</h1>
-  <!-- input box with button to search for NFT with bootstrap in middle -->
+  <!-- Input box with button to search for NFT-->
   <div class="container">
     <div class="row">
       <div class="col-md-4"></div>
       <div class="col-md-4">
-        <input type="text" id="search" class="form-control" placeholder="Search for NFT">
+        <input type="text" id="search" class="form-control" placeholder="Enter wallet address">
         <button type="button" id="searchButton" class="btn btn-primary">Search</button>
       </div>
       <div class="col-md-4"></div>
     </div>
-  <!-- table to display the data using bootstrap-->
+  <!-- Table to display the data-->
   <table id="table">
 
   </table>
   <div id="error"></div>
 
   <script>
-    //get data from rest api and display on site
+    //get data from REST API and display on site
+    //import env variables
+    const api_key = process.env.akapi_key;
     $("#searchButton").click(function () {
       var search = $("#search").val();
       data = {
-        'address': search
+        'address': search,
+        'auth': api_key
       };
       $.ajax({
         type: "POST",

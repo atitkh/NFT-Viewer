@@ -4,6 +4,7 @@ from flask import Flask, jsonify, request
 from threading import Thread
 nftportal_key = os.environ['nftportal_key']
 opensea_key = os.environ['opensea_key']
+akapi_key = os.environ['akapi_key']
 app = Flask('')
 
 #send html page in response
@@ -90,79 +91,91 @@ def nftportal_api_post():
     data = request.json
 
     assets = []
-    owner = data["address"]
+    #if the data doesn't contain key named address then it's not a valid request
+    if 'address' not in data:
+        return 'Err: Invalid request. Provide Address.'
+    else:
+        owner = data["address"]
 
-    url = f"https://api.nftport.xyz/v0/accounts/{owner}"
+    if 'auth' not in data:
+        return 'Err: Invalid request. Provide Authentication Key.'
+    else:
+        auth = data["auth"]
 
-    response_eth = requests.request("GET", url, headers={'Content-Type': "application/json",
-    'Authorization': nftportal_key}, params={"chain":"ethereum"}).json()
+    if auth == akapi_key:
+        url = f"https://api.nftport.xyz/v0/accounts/{owner}"
 
-    response_poly = requests.request("GET", url, headers={'Content-Type': "application/json",'Authorization': nftportal_key}, params={"chain":"polygon"}).json()
+        response_eth = requests.request("GET", url, headers={'Content-Type': "application/json",
+        'Authorization': nftportal_key}, params={"chain":"ethereum"}).json()
 
-#loop for ethereum chain NFTs 
-    try:
-        total_assets = len(response_eth['nfts'])
-        assets.append({'total_assets': total_assets})
+        response_poly = requests.request("GET", url, headers={'Content-Type': "application/json",'Authorization': nftportal_key}, params={"chain":"polygon"}).json()
 
-        for x in range(total_assets):
-            print(response_eth['nfts'][x]['file_url'])
-            data = {'description': response_eth['nfts'][x]['description'],
-            'img': response_eth['nfts'][x]['file_url'],
-            'name': response_eth['nfts'][x]['name'],
-            'chain' : 'Ethereum'
-            }
+        #loop for ethereum chain NFTs 
+        try:
+            total_assets = len(response_eth['nfts'])
+            assets.append({'total_assets': total_assets})
 
-            assets.append(data)
+            for x in range(total_assets):
+                print(response_eth['nfts'][x]['file_url'])
+                data = {'description': response_eth['nfts'][x]['description'],
+                'img': response_eth['nfts'][x]['file_url'],
+                'name': response_eth['nfts'][x]['name'],
+                'chain' : 'Ethereum'
+                }
 
-        if total_assets == 0:
-            print('No owned NFTs on ETH Chain')
-            assets.append('')
+                assets.append(data)
 
-        #change link
+            if total_assets == 0:
+                print('No owned NFTs on ETH Chain')
+                assets.append('')
+
+            #change link
+            for x in range(1, len(assets)):
+                if 'img' in assets[x]:
+                    if assets[x]['img'][:4] == 'ipfs':
+                        assets[x]['img'] = ipfs_link_changer(assets[x]['img'])
+                        print(assets[x]['img'])
+            else:
+                print('Not a IPFS link')
+
+        except:
+            print(response_eth)
+            assets.append(response_eth)
+
+        #loop for polygon chain NFTs  
+        try:
+            total_assets_poly = len(response_poly['nfts'])
+            assets[0]['total_assets'] += total_assets_poly
+
+            for x in range(total_assets_poly):
+                print(response_poly['nfts'][x]['file_url'])
+                data = {'description': response_poly['nfts'][x]['description'],
+                'img': response_poly['nfts'][x]['file_url'],
+                'name': response_poly['nfts'][x]['name'],
+                'chain' : 'Polygon'
+                }
+
+                assets.append(data)
+
+            if total_assets_poly == 0:
+                print('No owned NFTs on Polygon Chain')
+                assets.append('')
+
+        except:
+            print(response_poly)
+            assets.append(response_poly)
+
         for x in range(1, len(assets)):
             if 'img' in assets[x]:
                 if assets[x]['img'][:4] == 'ipfs':
                     assets[x]['img'] = ipfs_link_changer(assets[x]['img'])
                     print(assets[x]['img'])
-        else:
-            print('Not a IPFS link')
+            else:
+                print('Not a IPFS link')
 
-    except:
-        print(response_eth)
-        assets.append(response_eth)
-
-#loop for polygon chain NFTs  
-    try:
-        total_assets_poly = len(response_poly['nfts'])
-        assets[0]['total_assets'] += total_assets_poly
-
-        for x in range(total_assets_poly):
-            print(response_poly['nfts'][x]['file_url'])
-            data = {'description': response_poly['nfts'][x]['description'],
-            'img': response_poly['nfts'][x]['file_url'],
-            'name': response_poly['nfts'][x]['name'],
-            'chain' : 'Polygon'
-            }
-
-            assets.append(data)
-
-        if total_assets_poly == 0:
-            print('No owned NFTs on Polygon Chain')
-            assets.append('')
-
-    except:
-        print(response_poly)
-        assets.append(response_poly)
-
-    for x in range(1, len(assets)):
-        if 'img' in assets[x]:
-            if assets[x]['img'][:4] == 'ipfs':
-                assets[x]['img'] = ipfs_link_changer(assets[x]['img'])
-                print(assets[x]['img'])
-        else:
-            print('Not a IPFS link')
-
-    return jsonify(assets)
+        return jsonify(assets)
+    else:
+        return jsonify('Auth failed')
 
 t = Thread(target=run)
 t.start()
