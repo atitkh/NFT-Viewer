@@ -1,21 +1,24 @@
 import os
 import requests
-from flask import Flask, jsonify, request
+from flask import Flask, redirect, url_for, render_template, request, flash, jsonify
 from threading import Thread
+
 nftportal_key = os.environ['nftportal_key']
 opensea_key = os.environ['opensea_key']
 akapi_key = os.environ['akapi_key']
-app = Flask('')
+app = Flask(__name__, template_folder='html')
+
 
 #send html page in response
 @app.route('/')
 def index():
-    with open('index.html') as f:
-        return f.read()
+    return render_template('index.html', api_key=akapi_key)
     # return "NFT Viewer App - Soon"
-    
+
+
 def run():
     app.run(host='0.0.0.0', port=8080)
+
 
 # A route to return all of the available entries in our catalog.
 @app.route('/v1/address', methods=['GET'])
@@ -25,7 +28,9 @@ def api_all():
 
     url = f"https://api.opensea.io/api/v1/assets?owner={owner}&order_direction=desc&offset=0&limit=20"
 
-    response = requests.request("GET", url, headers={"X-API-KEY": opensea_key}).json()
+    response = requests.request("GET", url, headers={
+        "X-API-KEY": opensea_key
+    }).json()
     try:
         total_assets = len(response['assets'])
         reply.append({'total_assets': total_assets})
@@ -60,8 +65,10 @@ def api_post():
 
     url = f"https://api.opensea.io/api/v1/assets?owner={owner}&order_direction=desc&offset=0&limit=20"
 
-    response = requests.request("GET", url, headers={"X-API-KEY": opensea_key}).json()
-    
+    response = requests.request("GET", url, headers={
+        "X-API-KEY": opensea_key
+    }).json()
+
     try:
         total_assets = len(response['assets'])
         assets.append({'total_assets': total_assets})
@@ -86,11 +93,13 @@ def api_post():
     print(assets)
     return jsonify(assets)
 
+
 @app.route('/NFTPortal', methods=['POST'])
 def nftportal_api_post():
     data = request.json
 
     assets = []
+
     #if the data doesn't contain key named address then it's not a valid request
     if 'address' not in data:
         return 'Err: Invalid request. Provide Address.'
@@ -105,22 +114,39 @@ def nftportal_api_post():
     if auth == akapi_key:
         url = f"https://api.nftport.xyz/v0/accounts/{owner}"
 
-        response_eth = requests.request("GET", url, headers={'Content-Type': "application/json",
-        'Authorization': nftportal_key}, params={"chain":"ethereum"}).json()
+        response_eth = requests.request("GET",
+                                        url,
+                                        headers={
+                                            'Content-Type': "application/json",
+                                            'Authorization': nftportal_key
+                                        },
+                                        params={
+                                            "chain": "ethereum"
+                                        }).json()
 
-        response_poly = requests.request("GET", url, headers={'Content-Type': "application/json",'Authorization': nftportal_key}, params={"chain":"polygon"}).json()
+        response_poly = requests.request("GET",
+                                         url,
+                                         headers={
+                                             'Content-Type':
+                                             "application/json",
+                                             'Authorization': nftportal_key
+                                         },
+                                         params={
+                                             "chain": "polygon"
+                                         }).json()
 
-        #loop for ethereum chain NFTs 
+        #loop for ethereum chain NFTs
         try:
             total_assets = len(response_eth['nfts'])
             assets.append({'total_assets': total_assets})
 
             for x in range(total_assets):
                 print(response_eth['nfts'][x]['file_url'])
-                data = {'description': response_eth['nfts'][x]['description'],
-                'img': response_eth['nfts'][x]['file_url'],
-                'name': response_eth['nfts'][x]['name'],
-                'chain' : 'Ethereum'
+                data = {
+                    'description': response_eth['nfts'][x]['description'],
+                    'img': response_eth['nfts'][x]['file_url'],
+                    'name': response_eth['nfts'][x]['name'],
+                    'chain': 'Ethereum'
                 }
 
                 assets.append(data)
@@ -142,17 +168,18 @@ def nftportal_api_post():
             print(response_eth)
             assets.append(response_eth)
 
-        #loop for polygon chain NFTs  
+        #loop for polygon chain NFTs
         try:
             total_assets_poly = len(response_poly['nfts'])
             assets[0]['total_assets'] += total_assets_poly
 
             for x in range(total_assets_poly):
                 print(response_poly['nfts'][x]['file_url'])
-                data = {'description': response_poly['nfts'][x]['description'],
-                'img': response_poly['nfts'][x]['file_url'],
-                'name': response_poly['nfts'][x]['name'],
-                'chain' : 'Polygon'
+                data = {
+                    'description': response_poly['nfts'][x]['description'],
+                    'img': response_poly['nfts'][x]['file_url'],
+                    'name': response_poly['nfts'][x]['name'],
+                    'chain': 'Polygon'
                 }
 
                 assets.append(data)
@@ -176,6 +203,7 @@ def nftportal_api_post():
         return jsonify(assets)
     else:
         return jsonify('Auth failed')
+
 
 t = Thread(target=run)
 t.start()

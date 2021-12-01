@@ -62,12 +62,11 @@
   <script>
     //get data from REST API and display on site
     //import env variables
-    const api_key = process.env.akapi_key;
     $("#searchButton").click(function () {
       var search = $("#search").val();
       data = {
         'address': search,
-        'auth': api_key
+        'auth': '{{ api_key }}'
       };
       $.ajax({
         type: "POST",
