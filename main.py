@@ -161,9 +161,8 @@ def nftportal_api_post():
                     if assets[x]['img'][:4] == 'ipfs':
                         assets[x]['img'] = ipfs_link_changer(assets[x]['img'])
                         print(assets[x]['img'])
-            else:
-                print('Not a IPFS link')
-
+                    else:
+                        print('Not a IPFS link')
         except:
             print(response_eth)
             assets.append(response_eth)
@@ -194,12 +193,14 @@ def nftportal_api_post():
 
         for x in range(1, len(assets)):
             if 'img' in assets[x]:
-                if assets[x]['img'][:4] == 'ipfs':
-                    assets[x]['img'] = ipfs_link_changer(assets[x]['img'])
-                    print(assets[x]['img'])
-            else:
-                print('Not a IPFS link')
-
+                try:
+                    if assets[x]['img'][:4] == 'ipfs':
+                        assets[x]['img'] = ipfs_link_changer(assets[x]['img'])
+                        print(assets[x]['img'])
+                    else:
+                        print('Not a IPFS link')
+                except:
+                    pass
         return jsonify(assets)
     else:
         return jsonify('Auth failed')
