@@ -78,7 +78,7 @@
           $("#table").empty();
           //display the data in table
           $("#table").append("<tr><th>ID</th><th>NFT Name</th><th>Blockchain</th><th>Description</th><th>NFT Image</th></tr>");
-          for (var i = 1; i < response.length; i++) {
+          for (var i = 2; i < response.length; i++) {
             if(response[i].error){
               $("#error").empty();
               $("#error").append("<p>" + response[i].error + "</p>");

@@ -56,7 +56,7 @@ def api_all():
     return jsonify(reply)
 
 
-@app.route('/v1/post', methods=['POST'])
+@app.route('/v1/opensea', methods=['POST'])
 def api_post():
     data = request.json
 
@@ -213,7 +213,7 @@ t.start()
 def ipfs_link_changer(url):
     #ipfs link changer from ipfs:// to https://ipfs.io/
     try:
-        url = url.replace('ipfs://', 'https://ipfs.io/')
+        url = url.replace('ipfs://', 'https://ipfs.io/ipfs/')
         return url
     except:
         print('Invalid IPFS links')
