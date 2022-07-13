@@ -5,7 +5,7 @@ NFT Viewer is a Website and API to view owned NFTs of provided Address on Ethere
 
 ## Usage
 
-Visit NFT Viewer [Website](https://nft-viewer.atitkharel.com.np/) and enter a wallet address to search for owned NFTs.
+Visit NFT Viewer [Website](https://nftviewer.atitkharel.com.np/) and enter a wallet address to search for owned NFTs.
 
 ## Website
 ![image.png ](https://i.imgur.com/hqNuHcU.jpg)
